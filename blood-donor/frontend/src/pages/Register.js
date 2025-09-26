@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { FaUserPlus, FaCheckCircle, FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaWeight, FaBirthdayCake } from 'react-icons/fa';
 import { MdBloodtype, MdMedicalServices } from 'react-icons/md';
+import API_BASE_URL from '../config';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -48,7 +49,7 @@ const Register = () => {
     setLoading(true);
     
     try {
-      await axios.post('http://localhost:5000/api/donors', formData);
+      await axios.post(`${API_BASE_URL}/api/donors`, formData);
       setSuccess(true);
       setFormData({
         name: '',

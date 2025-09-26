@@ -3,6 +3,7 @@ import axios from 'axios';
 import { FaSearch, FaMapMarkerAlt, FaPhone, FaEnvelope, FaUser, FaWeight, FaBirthdayCake, FaEdit } from 'react-icons/fa';
 import { MdBloodtype } from 'react-icons/md';
 import EditDonorModal from '../components/EditDonorModal';
+import API_BASE_URL from '../config';
 
 const Search = () => {
   const [searchParams, setSearchParams] = useState({
@@ -27,7 +28,7 @@ const Search = () => {
     setLoading(true);
     setSearched(true);
     try {
-      let url = `http://localhost:5000/api/donors`;
+      let url = `${API_BASE_URL}/api/donors`;
       const params = new URLSearchParams();
       
       params.append('bloodGroup', searchParams.bloodGroup);

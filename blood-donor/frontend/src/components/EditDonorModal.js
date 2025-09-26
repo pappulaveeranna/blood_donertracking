@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaWeight, FaBirthdayCake, FaTimes, FaSave } from 'react-icons/fa';
 import { MdBloodtype, MdMedicalServices } from 'react-icons/md';
+import API_BASE_URL from '../config';
 
 const EditDonorModal = ({ donor, onClose, onUpdate }) => {
   const [formData, setFormData] = useState({
@@ -48,7 +49,7 @@ const EditDonorModal = ({ donor, onClose, onUpdate }) => {
     setLoading(true);
     
     try {
-      const response = await axios.put(`http://localhost:5000/api/donors/${donor._id}`, formData);
+      const response = await axios.put(`${API_BASE_URL}/api/donors/${donor._id}`, formData);
       onUpdate(response.data);
     } catch (error) {
       console.error('Update error:', error);

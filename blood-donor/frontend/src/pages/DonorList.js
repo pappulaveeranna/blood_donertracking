@@ -3,6 +3,7 @@ import axios from 'axios';
 import { FaUsers, FaMapMarkerAlt, FaPhone, FaEnvelope, FaFilter, FaUser, FaWeight, FaBirthdayCake, FaEdit } from 'react-icons/fa';
 import { MdBloodtype } from 'react-icons/md';
 import EditDonorModal from '../components/EditDonorModal';
+import API_BASE_URL from '../config';
 
 const DonorList = () => {
   const [donors, setDonors] = useState([]);
@@ -27,7 +28,7 @@ const DonorList = () => {
 
   const fetchDonors = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/donors');
+      const response = await axios.get(`${API_BASE_URL}/api/donors`);
       setDonors(response.data);
     } catch (error) {
       console.error('Error fetching donors:', error);
