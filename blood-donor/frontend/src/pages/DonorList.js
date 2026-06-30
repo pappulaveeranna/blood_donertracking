@@ -5,7 +5,7 @@ import { MdBloodtype } from 'react-icons/md';
 import EditDonorModal from '../components/EditDonorModal';
 import API_BASE_URL from '../config';
 
-const DonorList = () => {
+const DonorList = ({ user }) => {
   const [donors, setDonors] = useState([]);
   const [filteredDonors, setFilteredDonors] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -174,12 +174,19 @@ const DonorList = () => {
                     <strong>Registered:</strong> {new Date(donor.createdAt).toLocaleDateString()}
                   </p>
                   <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
-                    <button 
-                      className="btn-edit"
-                      onClick={() => handleEditDonor(donor)}
-                    >
-                      <FaEdit className="icon-3d" size={12} /> Edit
-                    </button>
+                    {user && donor.email === user.email && (
+                      <button 
+                        className="btn-edit"
+                        onClick={() => handleEditDonor(donor)}
+                      >
+                        <FaEdit className="icon-3d" size={12} /> Edit My Details
+                      </button>
+                    )}
+                    {user && donor.email !== user.email && (
+                      <span style={{ fontSize: '0.8rem', color: '#999', fontStyle: 'italic' }}>
+                        🔒 Only owner can edit
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>

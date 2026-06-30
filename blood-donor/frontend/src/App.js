@@ -36,9 +36,9 @@ function App() {
         <main className="main-content">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/search" element={<Search />} />
+            <Route path="/search" element={<Search user={user} />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/donors" element={<DonorList />} />
+            <Route path="/donors" element={<DonorList user={user} />} />
           </Routes>
         </main>
       </div>

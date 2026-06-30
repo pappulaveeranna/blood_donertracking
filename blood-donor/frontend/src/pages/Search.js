@@ -5,7 +5,7 @@ import { MdBloodtype } from 'react-icons/md';
 import EditDonorModal from '../components/EditDonorModal';
 import API_BASE_URL from '../config';
 
-const Search = () => {
+const Search = ({ user }) => {
   const [searchParams, setSearchParams] = useState({
     bloodGroup: '',
     city: '',
@@ -156,12 +156,16 @@ const Search = () => {
                     }}>
                       {donor.isAvailable ? '✓ Available' : '✗ Not Available'}
                     </div>
-                    <button 
-                      className="btn-edit"
-                      onClick={() => handleEditDonor(donor)}
-                    >
-                      <FaEdit className="icon-3d" size={12} /> Edit
-                    </button>
+                    {user && donor.email === user.email ? (
+                      <button 
+                        className="btn-edit"
+                        onClick={() => handleEditDonor(donor)}
+                      >
+                        <FaEdit className="icon-3d" size={12} /> Edit My Details
+                      </button>
+                    ) : (
+                      <span style={{ fontSize: '0.8rem', color: '#999', fontStyle: 'italic' }}>🔒 Only owner can edit</span>
+                    )}
                   </div>
                 </div>
               </div>
