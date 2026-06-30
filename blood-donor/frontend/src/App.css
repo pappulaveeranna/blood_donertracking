@@ -65,7 +65,13 @@ html {
 .nav-links {
   display: flex;
   list-style: none;
-  gap: 2rem;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.nav-links li {
+  display: flex;
+  align-items: center;
 }
 
 .nav-links a {
@@ -85,6 +91,45 @@ html {
   color: #dc2626;
   transform: translateY(-2px);
 }
+
+/* Message and Bell icon buttons in nav */
+.nav-icon-btn {
+  position: relative;
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+  border: none;
+  cursor: pointer;
+  padding: 8px 10px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 10px rgba(220,38,38,0.3);
+  transition: all 0.3s ease;
+}
+
+.nav-icon-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(220,38,38,0.5);
+}
+
+.nav-icon-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  border: 2px solid white;
+}
+
+.nav-icon-badge.green { background: #22c55e; }
+.nav-icon-badge.red { background: #ef4444; }
 
 /* 3D Icons */
 .icon-3d {

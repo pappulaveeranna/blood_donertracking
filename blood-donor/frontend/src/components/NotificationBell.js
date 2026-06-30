@@ -60,33 +60,20 @@ const NotificationBell = ({ user }) => {
 
   return (
     <div ref={dropdownRef} style={{ position: 'relative' }}>
-      <button
-        onClick={() => { setOpen(!open); if (!open) markAllRead(); }}
-        style={{
-          position: 'relative', background: 'none', border: 'none',
-          cursor: 'pointer', padding: '8px', color: 'white'
-        }}
-      >
-        <FaBell size={22} color="white" />
+      <button className="nav-icon-btn" onClick={() => { setOpen(!open); if (!open) markAllRead(); }}>
+        <FaBell size={20} color="white" />
         {unreadCount > 0 && (
-          <span style={{
-            position: 'absolute', top: '2px', right: '2px',
-            background: '#ff4444', color: 'white', borderRadius: '50%',
-            width: '18px', height: '18px', fontSize: '0.7rem',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontWeight: 'bold', animation: 'pulse 1s infinite'
-          }}>
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
+          <span className="nav-icon-badge red">{unreadCount > 9 ? '9+' : unreadCount}</span>
         )}
       </button>
 
       {open && (
         <div style={{
-          position: 'absolute', right: 0, top: '110%',
-          width: '340px', background: 'white', borderRadius: '12px',
-          boxShadow: '0 8px 30px rgba(0,0,0,0.15)', zIndex: 9999,
-          maxHeight: '400px', display: 'flex', flexDirection: 'column'
+          position: 'fixed', top: '70px', right: '30px',
+          width: '340px', background: 'white', borderRadius: '14px',
+          boxShadow: '0 10px 40px rgba(0,0,0,0.2)', zIndex: 99999,
+          maxHeight: '420px', display: 'flex', flexDirection: 'column',
+          border: '1px solid #f3f4f6', overflow: 'hidden'
         }}>
           <div style={{
             padding: '14px 16px', borderBottom: '1px solid #f3f4f6',

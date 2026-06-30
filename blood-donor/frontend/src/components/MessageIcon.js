@@ -37,14 +37,13 @@ const MessageIcon = ({ user }) => {
   }, []);
 
   const loadChats = () => {
-    // Find all chat keys involving current user
     const allKeys = Object.keys(localStorage).filter(k => k.startsWith('chat_') && k.includes(user.email));
     let unread = 0;
     const chatList = allKeys.map(key => {
       const msgs = JSON.parse(localStorage.getItem(key) || '[]');
-      const otherEmail = key.replace('chat_', '').replace(user.email, '').replace('_', '').replace('_', '');
+      const parts = key.replace('chat_', '').split('_');
+      const otherEmail = parts.find(p => p !== user.email) || '';
       const lastMsg = msgs[msgs.length - 1];
-      // Count unread: messages not from current user, after last read time
       const lastRead = parseInt(localStorage.getItem(`lastread_${key}_${user.email}`) || '0');
       const unreadCount = msgs.filter(m => m.senderEmail !== user.email && m.timestamp > lastRead).length;
       unread += unreadCount;
@@ -57,7 +56,6 @@ const MessageIcon = ({ user }) => {
   const loadMessages = (chat) => {
     const msgs = JSON.parse(localStorage.getItem(chat.key) || '[]');
     setMessages(msgs);
-    // Mark as read
     localStorage.setItem(`lastread_${chat.key}_${user.email}`, Date.now().toString());
     loadChats();
   };
@@ -74,9 +72,7 @@ const MessageIcon = ({ user }) => {
     const updated = [...messages, msg];
     setMessages(updated);
     localStorage.setItem(activeChat.key, JSON.stringify(updated));
-    setNewMessage('');
 
-    // Notify the other person
     const notifications = JSON.parse(localStorage.getItem(`notifications_${activeChat.otherEmail}`) || '[]');
     notifications.unshift({
       id: Date.now(),
@@ -88,12 +84,13 @@ const MessageIcon = ({ user }) => {
       read: false
     });
     localStorage.setItem(`notifications_${activeChat.otherEmail}`, JSON.stringify(notifications));
+    setNewMessage('');
     loadChats();
   };
 
   const getOtherName = (chat) => {
-    const lastMsg = chat.msgs.find(m => m.senderEmail !== user.email);
-    return lastMsg ? lastMsg.senderName : chat.otherEmail;
+    const msg = chat.msgs.find(m => m.senderEmail !== user.email);
+    return msg ? msg.senderName : chat.otherEmail;
   };
 
   const timeAgo = (timestamp) => {
@@ -107,52 +104,71 @@ const MessageIcon = ({ user }) => {
 
   return (
     <div ref={dropdownRef} style={{ position: 'relative' }}>
-      {/* Message Icon Button */}
-      <button
-        onClick={() => { setOpen(!open); setActiveChat(null); }}
-        style={{
-          position: 'relative', background: 'none', border: 'none',
-          cursor: 'pointer', padding: '8px', color: 'white'
-        }}
-      >
-        <FaComments size={22} color="white" />
+
+      {/* 💬 Message Button */}
+      <button className="nav-icon-btn" onClick={() => { setOpen(!open); setActiveChat(null); }}>
+        <FaComments size={20} color="white" />
         {totalUnread > 0 && (
-          <span style={{
-            position: 'absolute', top: '2px', right: '2px',
-            background: '#22c55e', color: 'white', borderRadius: '50%',
-            width: '18px', height: '18px', fontSize: '0.7rem',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontWeight: 'bold'
-          }}>
-            {totalUnread > 9 ? '9+' : totalUnread}
-          </span>
+          <span className="nav-icon-badge green">{totalUnread > 9 ? '9+' : totalUnread}</span>
         )}
       </button>
 
+      {/* Dropdown */}
       {open && (
         <div style={{
-          position: 'absolute', right: 0, top: '110%',
-          width: '340px', background: 'white', borderRadius: '12px',
-          boxShadow: '0 8px 30px rgba(0,0,0,0.18)', zIndex: 9999,
-          maxHeight: '480px', display: 'flex', flexDirection: 'column',
-          overflow: 'hidden'
+          position: 'fixed',
+          top: '70px',
+          right: '80px',
+          width: '340px',
+          background: 'white',
+          borderRadius: '14px',
+          boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+          zIndex: 99999,
+          maxHeight: '500px',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          border: '1px solid #f3f4f6'
         }}>
-          {/* Header */}
+
+          {/* Top bar */}
           <div style={{
-            padding: '14px 16px', background: 'linear-gradient(135deg,#dc2626,#ef4444)',
-            color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+            padding: '14px 16px',
+            background: 'linear-gradient(135deg, #dc2626, #ef4444)',
+            color: 'white',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexShrink: 0
           }}>
             {activeChat ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <button onClick={() => setActiveChat(null)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>
+                <button onClick={() => setActiveChat(null)}
+                  style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '2px' }}>
                   <FaArrowLeft size={14} />
                 </button>
+                <div style={{
+                  width: '30px', height: '30px', borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.3)', display: 'flex',
+                  alignItems: 'center', justifyContent: 'center', fontWeight: 'bold'
+                }}>
+                  {getOtherName(activeChat).charAt(0).toUpperCase()}
+                </div>
                 <span style={{ fontWeight: 'bold' }}>{getOtherName(activeChat)}</span>
               </div>
             ) : (
-              <span style={{ fontWeight: 'bold', fontSize: '1rem' }}>💬 Messages</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <FaComments size={16} />
+                <span style={{ fontWeight: 'bold', fontSize: '1rem' }}>Messages</span>
+                {totalUnread > 0 && (
+                  <span style={{ background: 'rgba(255,255,255,0.3)', borderRadius: '10px', padding: '2px 8px', fontSize: '0.8rem' }}>
+                    {totalUnread} new
+                  </span>
+                )}
+              </div>
             )}
-            <button onClick={() => { setOpen(false); setActiveChat(null); }} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>
+            <button onClick={() => { setOpen(false); setActiveChat(null); }}
+              style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>
               <FaTimes size={16} />
             </button>
           </div>
@@ -161,48 +177,49 @@ const MessageIcon = ({ user }) => {
           {!activeChat && (
             <div style={{ overflowY: 'auto', flex: 1 }}>
               {chats.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '2rem', color: '#999' }}>
-                  <FaComments size={36} color="#ddd" />
-                  <p style={{ marginTop: '8px' }}>No messages yet</p>
-                  <p style={{ fontSize: '0.8rem' }}>View a donor's profile to start chatting</p>
+                <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: '#999' }}>
+                  <FaComments size={40} color="#e5e7eb" />
+                  <p style={{ marginTop: '10px', fontWeight: '500' }}>No messages yet</p>
+                  <p style={{ fontSize: '0.8rem', marginTop: '4px' }}>Go to Donors → View Profile to start chatting</p>
                 </div>
               ) : (
                 chats.map(chat => (
-                  <div key={chat.key}
-                    onClick={() => setActiveChat(chat)}
+                  <div key={chat.key} onClick={() => setActiveChat(chat)}
                     style={{
                       padding: '12px 16px', borderBottom: '1px solid #f3f4f6',
                       cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px',
                       background: chat.unreadCount > 0 ? '#fff5f5' : 'white',
                       transition: 'background 0.2s'
                     }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#fef2f2'}
+                    onMouseLeave={e => e.currentTarget.style.background = chat.unreadCount > 0 ? '#fff5f5' : 'white'}
                   >
                     <div style={{
-                      width: '42px', height: '42px', borderRadius: '50%',
-                      background: '#dc2626', color: 'white', display: 'flex',
-                      alignItems: 'center', justifyContent: 'center',
-                      fontWeight: 'bold', fontSize: '1.1rem', flexShrink: 0
+                      width: '44px', height: '44px', borderRadius: '50%', flexShrink: 0,
+                      background: 'linear-gradient(135deg,#dc2626,#ef4444)',
+                      color: 'white', display: 'flex', alignItems: 'center',
+                      justifyContent: 'center', fontWeight: 'bold', fontSize: '1.1rem'
                     }}>
                       {getOtherName(chat).charAt(0).toUpperCase()}
                     </div>
                     <div style={{ flex: 1, overflow: 'hidden' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ fontWeight: chat.unreadCount > 0 ? 'bold' : '500', color: '#333' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                        <span style={{ fontWeight: chat.unreadCount > 0 ? 'bold' : '500', color: '#333', fontSize: '0.95rem' }}>
                           {getOtherName(chat)}
                         </span>
-                        <span style={{ fontSize: '0.75rem', color: '#999' }}>
-                          {timeAgo(chat.lastMsg?.timestamp)}
-                        </span>
+                        <span style={{ fontSize: '0.72rem', color: '#999' }}>{timeAgo(chat.lastMsg?.timestamp)}</span>
                       </div>
-                      <div style={{ fontSize: '0.85rem', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {chat.lastMsg ? `${chat.lastMsg.senderEmail === user.email ? 'You: ' : ''}${chat.lastMsg.text}` : 'No messages yet'}
+                      <div style={{ fontSize: '0.82rem', color: '#888', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {chat.lastMsg
+                          ? `${chat.lastMsg.senderEmail === user.email ? 'You: ' : ''}${chat.lastMsg.text}`
+                          : 'No messages yet'}
                       </div>
                     </div>
                     {chat.unreadCount > 0 && (
                       <span style={{
                         background: '#dc2626', color: 'white', borderRadius: '50%',
-                        width: '20px', height: '20px', fontSize: '0.7rem',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                        width: '20px', height: '20px', fontSize: '0.7rem', flexShrink: 0,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold'
                       }}>
                         {chat.unreadCount}
                       </span>
@@ -213,13 +230,13 @@ const MessageIcon = ({ user }) => {
             </div>
           )}
 
-          {/* Active Chat Messages */}
+          {/* Active Chat */}
           {activeChat && (
             <>
-              <div style={{ flex: 1, overflowY: 'auto', padding: '12px', background: '#f9fafb', maxHeight: '320px' }}>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '12px', background: '#f9fafb', minHeight: '280px', maxHeight: '350px' }}>
                 {messages.length === 0 && (
-                  <div style={{ textAlign: 'center', color: '#999', marginTop: '1rem' }}>
-                    <p>Start the conversation!</p>
+                  <div style={{ textAlign: 'center', color: '#aaa', marginTop: '2rem', fontSize: '0.9rem' }}>
+                    Say hi to start the conversation! 👋
                   </div>
                 )}
                 {messages.map(msg => (
@@ -232,10 +249,10 @@ const MessageIcon = ({ user }) => {
                       maxWidth: '75%', padding: '8px 12px', borderRadius: '16px',
                       background: msg.senderEmail === user.email ? '#dc2626' : 'white',
                       color: msg.senderEmail === user.email ? 'white' : '#333',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)', fontSize: '0.9rem'
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)', fontSize: '0.88rem'
                     }}>
                       <div>{msg.text}</div>
-                      <div style={{ fontSize: '0.65rem', opacity: 0.7, marginTop: '2px', textAlign: 'right' }}>
+                      <div style={{ fontSize: '0.63rem', opacity: 0.7, marginTop: '3px', textAlign: 'right' }}>
                         {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
                     </div>
@@ -244,17 +261,26 @@ const MessageIcon = ({ user }) => {
                 <div ref={messagesEndRef} />
               </div>
 
-              <div style={{ padding: '10px', background: 'white', borderTop: '1px solid #f3f4f6', display: 'flex', gap: '8px' }}>
+              <div style={{ padding: '10px 12px', background: 'white', borderTop: '1px solid #f3f4f6', display: 'flex', gap: '8px', flexShrink: 0 }}>
                 <input
                   type="text"
-                  className="form-control"
                   placeholder="Type a message..."
                   value={newMessage}
                   onChange={e => setNewMessage(e.target.value)}
                   onKeyPress={e => e.key === 'Enter' && sendMessage()}
-                  style={{ flex: 1, margin: 0, padding: '8px 12px', fontSize: '0.9rem' }}
+                  style={{
+                    flex: 1, border: '1.5px solid #e5e7eb', borderRadius: '20px',
+                    padding: '8px 14px', fontSize: '0.88rem', outline: 'none'
+                  }}
                 />
-                <button onClick={sendMessage} className="btn btn-primary" style={{ padding: '8px 14px' }}>
+                <button onClick={sendMessage}
+                  style={{
+                    background: 'linear-gradient(135deg,#dc2626,#ef4444)',
+                    color: 'white', border: 'none', borderRadius: '50%',
+                    width: '36px', height: '36px', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
                   <FaPaperPlane size={13} />
                 </button>
               </div>
