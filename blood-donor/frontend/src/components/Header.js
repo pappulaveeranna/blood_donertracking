@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FaHeart, FaHome, FaSearch, FaUserPlus, FaUsers, FaSignOutAlt } from 'react-icons/fa';
+import NotificationBell from './NotificationBell';
 
 const Header = ({ user, onLogout }) => {
   return (
@@ -15,15 +16,20 @@ const Header = ({ user, onLogout }) => {
           <li><Link to="/register"><FaUserPlus className="icon-3d" size={16} />Register</Link></li>
           <li><Link to="/donors"><FaUsers className="icon-3d" size={16} />Donors</Link></li>
           {user && (
-            <li>
-              <button 
-                onClick={onLogout}
-                className="btn btn-primary"
-                style={{ padding: '6px 12px', fontSize: '0.9rem' }}
-              >
-                <FaSignOutAlt className="icon-3d" size={14} />Logout
-              </button>
-            </li>
+            <>
+              <li>
+                <NotificationBell user={user} />
+              </li>
+              <li>
+                <button
+                  onClick={onLogout}
+                  className="btn btn-primary"
+                  style={{ padding: '6px 12px', fontSize: '0.9rem' }}
+                >
+                  <FaSignOutAlt className="icon-3d" size={14} /> Logout
+                </button>
+              </li>
+            </>
           )}
         </ul>
       </nav>

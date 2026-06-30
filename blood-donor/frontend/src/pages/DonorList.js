@@ -1,88 +1,55 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FaUsers, FaMapMarkerAlt, FaPhone, FaEnvelope, FaFilter, FaUser, FaWeight, FaBirthdayCake, FaEdit } from 'react-icons/fa';
+import { FaUsers, FaMapMarkerAlt, FaPhone, FaEnvelope, FaFilter, FaUser, FaWeight, FaBirthdayCake, FaEdit, FaEye } from 'react-icons/fa';
 import { MdBloodtype } from 'react-icons/md';
 import EditDonorModal from '../components/EditDonorModal';
+import DonorProfileModal from '../components/DonorProfileModal';
 import API_BASE_URL from '../config';
 
 const DonorList = ({ user }) => {
   const [donors, setDonors] = useState([]);
   const [filteredDonors, setFilteredDonors] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({
-    bloodGroup: '',
-    city: '',
-    available: ''
-  });
+  const [filters, setFilters] = useState({ bloodGroup: '', city: '', available: '' });
   const [editingDonor, setEditingDonor] = useState(null);
+  const [viewingDonor, setViewingDonor] = useState(null);
 
   const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
-  useEffect(() => {
-    fetchDonors();
-  }, []);
-
-  useEffect(() => {
-    applyFilters();
-  }, [donors, filters]);
+  useEffect(() => { fetchDonors(); }, []);
+  useEffect(() => { applyFilters(); }, [donors, filters]);
 
   const fetchDonors = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/donors`);
       setDonors(response.data);
     } catch (error) {
-      console.error('Error fetching donors:', error);
+      // fallback to localStorage donors
+      const local = JSON.parse(localStorage.getItem('bloodapp_donors') || '[]');
+      setDonors(local);
     }
     setLoading(false);
   };
 
   const applyFilters = () => {
     let filtered = donors;
-
-    if (filters.bloodGroup) {
-      filtered = filtered.filter(donor => donor.bloodGroup === filters.bloodGroup);
-    }
-
-    if (filters.city) {
-      filtered = filtered.filter(donor => 
-        donor.location.city.toLowerCase().includes(filters.city.toLowerCase())
-      );
-    }
-
-    if (filters.available !== '') {
-      filtered = filtered.filter(donor => 
-        donor.isAvailable === (filters.available === 'true')
-      );
-    }
-
+    if (filters.bloodGroup) filtered = filtered.filter(d => d.bloodGroup === filters.bloodGroup);
+    if (filters.city) filtered = filtered.filter(d => d.location.city.toLowerCase().includes(filters.city.toLowerCase()));
+    if (filters.available !== '') filtered = filtered.filter(d => d.isAvailable === (filters.available === 'true'));
     setFilteredDonors(filtered);
   };
 
   const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setFilters({
-      ...filters,
-      [name]: value
-    });
-  };
-
-  const handleEditDonor = (donor) => {
-    setEditingDonor(donor);
+    setFilters({ ...filters, [e.target.name]: e.target.value });
   };
 
   const handleUpdateDonor = (updatedDonor) => {
-    setDonors(donors.map(donor => 
-      donor._id === updatedDonor._id ? updatedDonor : donor
-    ));
+    setDonors(donors.map(d => d._id === updatedDonor._id ? updatedDonor : d));
     setEditingDonor(null);
   };
 
   if (loading) {
-    return (
-      <div className="card" style={{ textAlign: 'center' }}>
-        <p>Loading donors...</p>
-      </div>
-    );
+    return <div className="card" style={{ textAlign: 'center' }}><p>Loading donors...</p></div>;
   }
 
   return (
@@ -91,43 +58,26 @@ const DonorList = ({ user }) => {
         <h2 style={{ textAlign: 'center', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
           <FaUsers className="icon-3d" size={28} color="#dc2626" /> All Registered Donors ({filteredDonors.length})
         </h2>
-        
+
         <div style={{ marginBottom: '2rem' }}>
-          <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}><FaFilter className="icon-3d" size={20} />Filters</h3>
+          <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FaFilter className="icon-3d" size={20} /> Filters
+          </h3>
           <div className="form-row">
             <div className="form-group">
-              <label><MdBloodtype className="icon-3d" size={16} />Blood Group</label>
-              <select
-                name="bloodGroup"
-                className="form-control"
-                value={filters.bloodGroup}
-                onChange={handleFilterChange}
-              >
+              <label><MdBloodtype size={16} /> Blood Group</label>
+              <select name="bloodGroup" className="form-control" value={filters.bloodGroup} onChange={handleFilterChange}>
                 <option value="">All Blood Groups</option>
-                {bloodGroups.map(group => (
-                  <option key={group} value={group}>{group}</option>
-                ))}
+                {bloodGroups.map(g => <option key={g} value={g}>{g}</option>)}
               </select>
             </div>
             <div className="form-group">
-              <label><FaMapMarkerAlt className="icon-3d" size={16} />City</label>
-              <input
-                type="text"
-                name="city"
-                className="form-control"
-                placeholder="Filter by city"
-                value={filters.city}
-                onChange={handleFilterChange}
-              />
+              <label><FaMapMarkerAlt size={16} /> City</label>
+              <input type="text" name="city" className="form-control" placeholder="Filter by city" value={filters.city} onChange={handleFilterChange} />
             </div>
             <div className="form-group">
-              <label><FaUsers className="icon-3d" size={16} />Availability</label>
-              <select
-                name="available"
-                className="form-control"
-                value={filters.available}
-                onChange={handleFilterChange}
-              >
+              <label><FaUsers size={16} /> Availability</label>
+              <select name="available" className="form-control" value={filters.available} onChange={handleFilterChange}>
                 <option value="">All Donors</option>
                 <option value="true">Available</option>
                 <option value="false">Not Available</option>
@@ -148,20 +98,15 @@ const DonorList = ({ user }) => {
                 <p><FaWeight className="icon-3d" size={14} /><strong>Weight:</strong> {donor.weight} kg</p>
                 <p><FaMapMarkerAlt className="icon-3d" size={14} /> {donor.location.city}, {donor.location.state}</p>
                 <p style={{ fontSize: '0.9rem', color: '#666' }}>{donor.location.address}</p>
-                
-                <div style={{ 
-                  display: 'inline-block', 
-                  padding: '4px 12px', 
-                  borderRadius: '15px', 
-                  fontSize: '0.8rem',
-                  backgroundColor: donor.isAvailable ? '#27ae60' : '#e74c3c',
-                  color: 'white',
-                  marginBottom: '1rem',
-                  fontWeight: 'bold'
+
+                <div style={{
+                  display: 'inline-block', padding: '4px 12px', borderRadius: '15px',
+                  fontSize: '0.8rem', backgroundColor: donor.isAvailable ? '#27ae60' : '#e74c3c',
+                  color: 'white', marginBottom: '1rem', fontWeight: 'bold'
                 }}>
                   {donor.isAvailable ? '✓ Available' : '✗ Not Available'}
                 </div>
-                
+
                 <div className="contact-info">
                   <p><FaPhone className="icon-3d" size={14} /> <a href={`tel:${donor.phone}`} style={{ color: '#dc2626', textDecoration: 'none' }}>{donor.phone}</a></p>
                   <p><FaEnvelope className="icon-3d" size={14} /> <a href={`mailto:${donor.email}`} style={{ color: '#dc2626', textDecoration: 'none' }}>{donor.email}</a></p>
@@ -173,19 +118,24 @@ const DonorList = ({ user }) => {
                   <p style={{ fontSize: '0.9rem', color: '#666' }}>
                     <strong>Registered:</strong> {new Date(donor.createdAt).toLocaleDateString()}
                   </p>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
-                    {user && donor.email === user.email && (
-                      <button 
-                        className="btn-edit"
-                        onClick={() => handleEditDonor(donor)}
-                      >
+
+                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                    {user && donor.email === user.email ? (
+                      <button className="btn-edit" onClick={() => setEditingDonor(donor)}>
                         <FaEdit className="icon-3d" size={12} /> Edit My Details
                       </button>
-                    )}
-                    {user && donor.email !== user.email && (
-                      <span style={{ fontSize: '0.8rem', color: '#999', fontStyle: 'italic' }}>
-                        🔒 Only owner can edit
-                      </span>
+                    ) : (
+                      <button
+                        onClick={() => setViewingDonor(donor)}
+                        style={{
+                          background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                          color: 'white', border: 'none', borderRadius: '8px',
+                          padding: '6px 14px', cursor: 'pointer', fontSize: '0.85rem',
+                          display: 'flex', alignItems: 'center', gap: '6px'
+                        }}
+                      >
+                        <FaEye size={12} /> View Profile & Chat
+                      </button>
                     )}
                   </div>
                 </div>
@@ -201,11 +151,11 @@ const DonorList = ({ user }) => {
       )}
 
       {editingDonor && (
-        <EditDonorModal 
-          donor={editingDonor}
-          onClose={() => setEditingDonor(null)}
-          onUpdate={handleUpdateDonor}
-        />
+        <EditDonorModal donor={editingDonor} onClose={() => setEditingDonor(null)} onUpdate={handleUpdateDonor} />
+      )}
+
+      {viewingDonor && (
+        <DonorProfileModal donor={viewingDonor} currentUser={user} onClose={() => setViewingDonor(null)} />
       )}
     </div>
   );
