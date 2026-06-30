@@ -27,24 +27,35 @@ const Search = ({ user }) => {
 
     setLoading(true);
     setSearched(true);
+
+    // Always load localStorage donors
+    const localDonors = JSON.parse(localStorage.getItem('bloodapp_donors') || '[]');
+
     try {
-      let url = `${API_BASE_URL}/api/donors`;
+      const url = `${API_BASE_URL}/api/donors`;
       const params = new URLSearchParams();
-      
       params.append('bloodGroup', searchParams.bloodGroup);
-      
-      if (searchParams.city) {
-        params.append('city', searchParams.city);
-      }
-      if (searchParams.state) {
-        params.append('state', searchParams.state);
-      }
-      
+      if (searchParams.city) params.append('city', searchParams.city);
+      if (searchParams.state) params.append('state', searchParams.state);
+
       const response = await axios.get(`${url}?${params.toString()}`);
-      setDonors(response.data);
+      const backendDonors = response.data;
+
+      // Filter localStorage donors by same criteria
+      let filteredLocal = localDonors.filter(d => d.bloodGroup === searchParams.bloodGroup);
+      if (searchParams.city) filteredLocal = filteredLocal.filter(d => d.location?.city?.toLowerCase().includes(searchParams.city.toLowerCase()));
+      if (searchParams.state) filteredLocal = filteredLocal.filter(d => d.location?.state?.toLowerCase().includes(searchParams.state.toLowerCase()));
+
+      // Merge avoiding duplicates by email
+      const backendEmails = new Set(backendDonors.map(d => d.email));
+      const uniqueLocal = filteredLocal.filter(d => !backendEmails.has(d.email));
+      setDonors([...backendDonors, ...uniqueLocal]);
     } catch (error) {
-      console.error('Search error:', error);
-      alert('Error searching donors. Please try again.');
+      // Backend not available - search only localStorage donors
+      let filteredLocal = localDonors.filter(d => d.bloodGroup === searchParams.bloodGroup);
+      if (searchParams.city) filteredLocal = filteredLocal.filter(d => d.location?.city?.toLowerCase().includes(searchParams.city.toLowerCase()));
+      if (searchParams.state) filteredLocal = filteredLocal.filter(d => d.location?.state?.toLowerCase().includes(searchParams.state.toLowerCase()));
+      setDonors(filteredLocal);
     }
     setLoading(false);
   };

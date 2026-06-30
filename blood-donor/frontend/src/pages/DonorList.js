@@ -20,13 +20,21 @@ const DonorList = ({ user }) => {
   useEffect(() => { applyFilters(); }, [donors, filters]);
 
   const fetchDonors = async () => {
+    // Always load localStorage donors first
+    const localDonors = JSON.parse(localStorage.getItem('bloodapp_donors') || '[]');
+    
     try {
       const response = await axios.get(`${API_BASE_URL}/api/donors`);
-      setDonors(response.data);
+      const backendDonors = response.data;
+
+      // Merge backend + localStorage donors, avoid duplicates by email
+      const backendEmails = new Set(backendDonors.map(d => d.email));
+      const uniqueLocalDonors = localDonors.filter(d => !backendEmails.has(d.email));
+      const allDonors = [...backendDonors, ...uniqueLocalDonors];
+      setDonors(allDonors);
     } catch (error) {
-      // fallback to localStorage donors
-      const local = JSON.parse(localStorage.getItem('bloodapp_donors') || '[]');
-      setDonors(local);
+      // Backend not available - show only localStorage donors
+      setDonors(localDonors);
     }
     setLoading(false);
   };
