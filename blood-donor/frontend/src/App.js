@@ -37,7 +37,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/search" element={<Search user={user} />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/register" element={<Register user={user} />} />
             <Route path="/donors" element={<DonorList user={user} />} />
           </Routes>
         </main>
